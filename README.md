@@ -1,69 +1,122 @@
-# Welcome to PoeticVerse
+# PoeticVerse - A Social Platform for Poets and Poetry Lovers
 
 ## Project Overview
-PoeticVerse is a web application designed to enhance creative writing and poetry sharing. This repository contains the source code and necessary setup instructions to get started.
 
-## Features
-- User authentication and account management
-- Rich text editor for writing poetry
-- Poetry sharing and social interactions
-- Theming and customization options
-- Mobile-responsive design
+PoeticVerse is a social media platform designed for poets and poetry enthusiasts. It enables users to create, share, and monetize their poems, shayari, and literary content while ensuring copyright protection through blockchain technology.
 
-## Installation
-To set up the project locally, follow these steps:
+## Core Features
 
-1. Clone the repository:
-   ```sh
-   git clone <YOUR_GIT_URL>
-   ```
-2. Navigate to the project directory:
-   ```sh
-   cd <YOUR_PROJECT_NAME>
-   ```
-3. Install dependencies:
-   ```sh
-   npm install
-   ```
-4. Start the development server:
-   ```sh
-   npm run dev
-   ```
+### User Profiles and Social Interaction
 
-## Technologies Used
-This project is built with:
-- **Vite** - Fast front-end build tool
-- **TypeScript** - Typed JavaScript for better development experience
-- **React** - Component-based UI library
-- **shadcn-ui** - UI components for rapid development
-- **Tailwind CSS** - Utility-first CSS framework
-- **Express.js** - Backend server for API handling
-- **MongoDB** - Database for storing poetry and user data
+- Create personal profiles to showcase poetry.
+- Follow poets, like, and comment on posts for community engagement.
+- Share text-based poetry and shayari.
 
-## Deployment
-To deploy the project:
-- Use **Netlify** for front-end hosting
-- Use **Vercel** or **Heroku** for backend hosting
-- Set up **MongoDB Atlas** for cloud database
+### Content Monetization
 
-### Environment Variables
-Before running the project, set up the required environment variables in a `.env` file:
+- Secure poems with blockchain-based copyright protection.
+- Allow users to request rights for commercial use (e.g., movies, songs).
+- Track and manage licensing requests with secure payment handling.
+- DRM system ensures protection against unauthorized reproduction.
+
+### Audio Poetry Library
+
+- Collection of legendary and user-uploaded poetry audios.
+- Poets can upload and rent audio recordings.
+- Searchable database with metadata (title, author, recording date, etc.).
+- Rental system for monetization with DRM protection.
+
+### Workshops
+
+- Poets can create workshops for poetry readings or knowledge sharing.
+- Workshop setup includes title, description, duration, payment options, and meeting links.
+- Users can register by paying via QR code and submitting proof of payment.
+- Only approved participants can access workshop links.
+
+### Explore and Search Features
+
+- Discover poetry, audio files, and workshops.
+- Robust search functionality for poems, audio, and poets.
+- Personal "My Audio" section for managing uploaded content.
+
+### Admin Controls
+
+- Admins can upload legendary poetry audio and moderate content.
+- Manage copyright approvals and handle disputes.
+- Ensure high-quality content on the platform.
+
+### Payment and Transactions
+
+- Monetization for text and audio content via sales or rentals.
+- Google Pay-based payment system for secure transactions.
+- Revenue-sharing model benefits both PoeticVerse and poets.
+
+### Copyright and Blockchain Integration
+
+- Poets can register their poems for blockchain-backed copyright protection.
+- Secure proof of ownership and transaction records.
+- Prevents unauthorized reproduction and plagiarism.
+
+### Content Discovery
+
+- Browse uploaded content from poets worldwide.
+- Advanced search filters for easy content access.
+
+### Upcoming Features
+
+- Analytics Dashboard for tracking engagement and monetization.
+- Leaderboards highlighting top poets and audio uploads.
+- Poetry Contests and Challenges to encourage creativity.
+
+## Technology Stack
+
+- **Frontend:** React.js
+- **Backend:** Node.js, Express.js
+- **Database:** MongoDB
+- **Blockchain Integration:** Secure copyright and transactions
+- **Payment Gateway:** Google Pay API
+- **Storage:** Cloud-based storage for audio and text content
+- **DRM Protection:** Digital rights management system for content security
+
+## How to Run the Project
+
+### Clone the Repository
+
+```sh
+git clone https://github.com/njangid22/PoeticVerse.git
+cd PoeticVerse
 ```
-REACT_APP_API_URL=<your_api_url>
-MONGODB_URI=<your_mongodb_connection>
-JWT_SECRET=<your_secret_key>
+
+### Install Dependencies
+
+```sh
+npm i
 ```
 
-## Contributing
-Contributions are welcome! Follow these steps to contribute:
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature-branch`)
-3. Commit your changes (`git commit -m 'Add new feature'`)
-4. Push to the branch (`git push origin feature-branch`)
-5. Open a Pull Request
+### Set up Environment Variables
+
+- MongoDB connection string
+- Google Pay API keys
+- Blockchain integration credentials
+
+### Run the Application
+
+```sh
+npm run dev
+```
+
+- Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Contribution Guidelines
+
+1. Fork the repository.
+2. Create a new branch (`feature/your-feature-name`).
+3. Commit your changes and push them to your fork.
+4. Submit a pull request for review.
 
 ## License
+
 This project is licensed under the MIT License.
 
-For any questions or issues, feel free to reach out via GitHub Issues.
+For any issues or contributions, feel free to reach out via GitHub Issues.
 
