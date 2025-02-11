@@ -17,7 +17,15 @@ export default function CreateWorkshop() {
   const [isPaid, setIsPaid] = useState(false);
   const [price, setPrice] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("");
+  const [meetingLink, setMeetingLink] = useState(""); // New field for meeting link
+  const [qrCodeFile, setQrCodeFile] = useState<File | null>(null); // New field for QR code upload
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setQrCodeFile(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +34,19 @@ export default function CreateWorkshop() {
     try {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error("Not authenticated");
+
+      // If there's a QR code file, upload it to Supabase storage
+      let qrCodeUrl = null;
+      if (qrCodeFile) {
+        const { data: qrCodeData, error: uploadError } = await supabase
+          .storage
+          .from("workshop_qr_codes") // Assuming you have a bucket for storing QR codes
+          .upload(`qr-codes/${Date.now()}-${qrCodeFile.name}`, qrCodeFile);
+
+        if (uploadError) throw uploadError;
+
+        qrCodeUrl = qrCodeData?.path ? supabase.storage.from("workshop_qr_codes").getPublicUrl(qrCodeData.path).data.publicUrl : null;
+      }
 
       const { error } = await supabase.from("workshops").insert({
         host_id: user.id,
@@ -36,6 +57,8 @@ export default function CreateWorkshop() {
         is_paid: isPaid,
         price: isPaid ? parseFloat(price) : null,
         max_participants: parseInt(maxParticipants),
+        meeting_link: meetingLink, // Save meeting link
+        payment_qr_code_url: qrCodeUrl, // Save QR code URL
       });
 
       if (error) throw error;
@@ -107,6 +130,20 @@ export default function CreateWorkshop() {
           value={maxParticipants}
           onChange={(e) => setMaxParticipants(e.target.value)}
           required
+        />
+        {/* New input for meeting link */}
+        <Input
+          type="url"
+          placeholder="Meeting Link"
+          value={meetingLink}
+          onChange={(e) => setMeetingLink(e.target.value)}
+          required
+        />
+        {/* New input for QR code file upload */}
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
         />
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Creating..." : "Create Workshop"}
