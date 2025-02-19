@@ -7,26 +7,48 @@ import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
-      
+      if (error) throw new Error(error.message);
+
       toast.success("Successfully logged in!");
       navigate("/");
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+      });
+      if (error) throw new Error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error("Google login failed: " + error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,6 +85,14 @@ const Login = () => {
 
           <Button className="w-full" type="submit" disabled={loading}>
             {loading ? "Signing in..." : "Sign in"}
+          </Button>
+
+          <Button
+            className="w-full mt-4 bg-red-600 text-white hover:bg-red-700"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+          >
+            {loading ? "Signing in with Google..." : "Sign in with Google"}
           </Button>
 
           <p className="text-center text-sm text-gray-600">
