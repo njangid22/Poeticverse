@@ -1,4 +1,4 @@
-# PoeticVerse - A Social Platform for Poets and Poetry Lovers
+huh# PoeticVerse - A Social Platform for Poets and Poetry Lovers
 
 ## Project Overview
 
@@ -135,10 +135,3 @@ License
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 For any issues or contributions, feel free to reach out via GitHub Issues.
-
-### Changes:
-- **Core Features** section clearly outlines all the major functionality of the platform.
-- **Technology Stack** and **How to Run the Project** sections include specific details about the required setup and environment variables.
-- **Live Website** link added to the intro section.
-
-This will provide clear instructions for any user or developer interested in PoeticVerse!
