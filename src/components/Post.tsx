@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Comments } from "./post/Comments";
 import { usePostActions } from "@/hooks/usePostActions";
@@ -17,7 +16,6 @@ interface PostProps {
   imageUrl?: string;
   postId: string;
   profilePicUrl?: string;
-  userId?: string;
 }
 
 export const Post = ({ 
@@ -27,8 +25,7 @@ export const Post = ({
   likes: initialLikes, 
   imageUrl,
   postId,
-  profilePicUrl,
-  userId
+  profilePicUrl
 }: PostProps) => {
   const [showComments, setShowComments] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -40,29 +37,21 @@ export const Post = ({
     checkIfLiked,
     fetchComments,
     handleLike,
-    handleComment,
-    isLoadingActions
+    handleComment
   } = usePostActions(postId);
 
   useEffect(() => {
     setLikes(initialLikes);
     checkIfLiked();
     fetchComments();
-  }, [postId, initialLikes, checkIfLiked, fetchComments, setLikes]);
-
-  const toggleComments = () => {
-    setShowComments(!showComments);
-    if (!showComments) {
-      fetchComments();
-    }
-  };
+  }, [postId, initialLikes]);
 
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="glass-card overflow-hidden rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 w-full mx-auto"
+      className="bg-white border border-gray-200 rounded-lg mb-4 max-w-[468px] mx-auto shadow-sm hover:shadow-md transition-shadow duration-200"
     >
       <PostHeader 
         username={username} 
@@ -71,20 +60,19 @@ export const Post = ({
       />
       
       <div className="px-4 py-2">
-        <p className="text-sm text-gray-800 mb-2 leading-relaxed">{content}</p>
+        <p className="text-sm text-gray-800 mb-2">{content}</p>
       </div>
       
       {imageUrl && <PostImage imageUrl={imageUrl} />}
       
-      <div className="px-4 py-3 border-t border-gray-100">
+      <div className="px-4 py-2 border-t border-gray-100">
         <PostActions 
           isLiked={isLiked}
           likes={likes}
           comments={postComments.length}
           onLike={handleLike}
-          onComment={toggleComments}
+          onComment={() => setShowComments(!showComments)}
           onShare={() => setShowShareDialog(true)}
-          isLoading={isLoadingActions}
         />
       </div>
       
@@ -93,7 +81,7 @@ export const Post = ({
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
-          className="border-t border-gray-100 bg-gray-50/50"
+          className="border-t border-gray-100"
         >
           <Comments 
             comments={postComments}

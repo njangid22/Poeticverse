@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -7,11 +6,10 @@ import { useQueryClient } from "@tanstack/react-query";
 export const usePostActions = (postId: string) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(0);
-  const [isLoadingActions, setIsLoadingActions] = useState(false);
   const [postComments, setPostComments] = useState<Array<{ id: string; comment_text: string; username: string }>>([]);
   const queryClient = useQueryClient();
 
-  const checkIfLiked = useCallback(async () => {
+  const checkIfLiked = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -27,9 +25,9 @@ export const usePostActions = (postId: string) => {
     } catch (error) {
       console.error("Error checking like status:", error);
     }
-  }, [postId]);
+  };
 
-  const fetchComments = useCallback(async () => {
+  const fetchComments = async () => {
     try {
       const { data: comments, error } = await supabase
         .from("comments")
@@ -41,10 +39,7 @@ export const usePostActions = (postId: string) => {
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
 
-      if (error) {
-        console.error("Error fetching comments:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       setPostComments(comments.map(comment => ({
         id: comment.id,
@@ -54,11 +49,10 @@ export const usePostActions = (postId: string) => {
     } catch (error) {
       console.error("Error fetching comments:", error);
     }
-  }, [postId]);
+  };
 
   const handleLike = async () => {
     try {
-      setIsLoadingActions(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Please login to like posts");
@@ -84,12 +78,9 @@ export const usePostActions = (postId: string) => {
       queryClient.invalidateQueries({ queryKey: ['followed-posts'] });
       queryClient.invalidateQueries({ queryKey: ['random-posts'] });
       queryClient.invalidateQueries({ queryKey: ['posts-with-likes'] });
-      queryClient.invalidateQueries({ queryKey: ['home-posts'] });
     } catch (error) {
       console.error("Error handling like:", error);
       toast.error("Failed to update like");
-    } finally {
-      setIsLoadingActions(false);
     }
   };
 
@@ -97,7 +88,6 @@ export const usePostActions = (postId: string) => {
     if (!commentText.trim()) return;
 
     try {
-      setIsLoadingActions(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Please login to comment");
@@ -119,40 +109,26 @@ export const usePostActions = (postId: string) => {
     } catch (error) {
       console.error("Error adding comment:", error);
       toast.error("Failed to add comment");
-    } finally {
-      setIsLoadingActions(false);
     }
   };
 
-  // Set up real-time subscription for likes and comments
+  // Set up real-time subscription for likes
   useEffect(() => {
-    const likesChannel = supabase
+    const channel = supabase
       .channel(`public:likes:${postId}`)
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'likes', filter: `post_id=eq.${postId}` },
         () => {
           checkIfLiked();
           queryClient.invalidateQueries({ queryKey: ['posts-with-likes'] });
-          queryClient.invalidateQueries({ queryKey: ['home-posts'] });
-        }
-      )
-      .subscribe();
-
-    const commentsChannel = supabase
-      .channel(`public:comments:${postId}`)
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` },
-        () => {
-          fetchComments();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(likesChannel);
-      supabase.removeChannel(commentsChannel);
+      supabase.removeChannel(channel);
     };
-  }, [postId, checkIfLiked, fetchComments, queryClient]);
+  }, [postId]);
 
   return {
     isLiked,
@@ -162,7 +138,6 @@ export const usePostActions = (postId: string) => {
     checkIfLiked,
     fetchComments,
     handleLike,
-    handleComment,
-    isLoadingActions
+    handleComment
   };
 };

@@ -1,11 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { FloatingPoetryIcon } from "@/components/ui/floating-poetry-icon";
 import Index from "@/pages/Index";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
@@ -32,101 +30,30 @@ import CreateChallenge from "@/pages/CreateChallenge";
 import ChallengeDetails from "@/pages/ChallengeDetails";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/ui/Navbar";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import Contact from "@/pages/Contact";
-import PoetryAssistant from "@/pages/PoetryAssistant";
 
-// Configure QueryClient with default options
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       retry: 1,
     },
   },
 });
 
-// Protected route wrapper that checks for authentication
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const location = useLocation();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-      setLoading(false);
-    };
-    
-    checkAuth();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
-    
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 rounded-full border-t-4 border-primary animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// Public only routes (redirect to home if logged in)
-const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-      setLoading(false);
-    };
-    
-    checkAuth();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
-    
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 rounded-full border-t-4 border-primary animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <>{children}</>;
-};
+// New Navbar component with a logo on the left
+function Navbar() {
+  return (
+    <header className="fixed top-0 left-0 right-0 bg-white border-b z-50 flex items-center px-4 py-2 shadow">
+      <Link to="/">
+        <img src="/logo2.png" alt="Poeticverse Logo" className="h-10" />
+      </Link>
+      {/* Additional navbar content can be added here */}
+    </header>
+  );
+}
 
 function App() {
   const [user, setUser] = useState(null);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -151,60 +78,57 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <SidebarProvider defaultOpen={!isMobile}>
-          <div className="min-h-screen flex w-full bg-gradient-to-br from-white to-purple-50 overflow-x-hidden">
+        <SidebarProvider defaultOpen={false}>
+          <div className="min-h-screen flex w-full bg-background">
             <BrowserRouter>
               <Navbar />
-              <div className="flex w-full relative">
-                {user && !isMobile && <AppSidebar />}
-                <main className="flex-1 transition-all duration-200 ease-in-out relative z-0 pt-16 max-w-full overflow-x-hidden">
-                  <div className="w-full px-2 py-4 sm:py-6 mx-auto max-w-[600px] overflow-x-hidden">
+              {/* Add a top margin (e.g., mt-16) to push content below the fixed navbar */}
+              <div className="flex w-full relative mt-16">
+                {user && <AppSidebar />} {/* Sidebar only if logged in */}
+                <main className="flex-1 transition-all duration-200 ease-in-out relative z-0">
+                  <div className="max-w-[600px] mx-auto px-6 py-8 w-full">
                     <Routes>
-                      {/* Public routes */}
+                      <Route path="/" element={<Index />} />
                       <Route path="/landing" element={<Landing />} />
-                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                      <Route path="/contact" element={<Contact />} />
-                      
-                      {/* Routes only for non-authenticated users */}
-                      <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
-                      <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
-                      
-                      {/* Protected routes */}
-                      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                      <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-                      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                      <Route path="/profile/:username" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                      <Route path="/profile/:username/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
-                      <Route path="/create-post" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                      <Route path="/search" element={<Search />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/profile/:username" element={<Profile />} />
+                      <Route path="/profile/:username/edit" element={<EditProfile />} />
+                      <Route path="/create-post" element={<CreatePost />} />
 
-                      <Route path="/books" element={<ProtectedRoute><Books /></ProtectedRoute>} />
-                      <Route path="/books/create" element={<ProtectedRoute><CreateBook /></ProtectedRoute>} />
-                      <Route path="/books/admin" element={<ProtectedRoute><AdminBooks /></ProtectedRoute>} />
-                      <Route path="/books/:id" element={<ProtectedRoute><BookDetails /></ProtectedRoute>} />
+                      {/* Books routes */}
+                      <Route path="/books" element={<Books />} />
+                      <Route path="/books/create" element={<CreateBook />} />
+                      <Route path="/books/admin" element={<AdminBooks />} />
+                      <Route path="/books/:id" element={<BookDetails />} />
 
-                      <Route path="/audio-library" element={<ProtectedRoute><AudioLibrary /></ProtectedRoute>} />
-                      <Route path="/audio-library/create" element={<ProtectedRoute><CreateAudio /></ProtectedRoute>} />
+                      {/* Audio Library routes */}
+                      <Route path="/audio-library" element={<AudioLibrary />} />
+                      <Route path="/audio-library/create" element={<CreateAudio />} />
 
-                      <Route path="/licensing" element={<ProtectedRoute><Licensing /></ProtectedRoute>} />
+                      {/* Licensing routes */}
+                      <Route path="/licensing" element={<Licensing />} />
 
-                      <Route path="/workshops" element={<ProtectedRoute><Workshops /></ProtectedRoute>} />
-                      <Route path="/workshops/create" element={<ProtectedRoute><CreateWorkshop /></ProtectedRoute>} />
-                      <Route path="/workshops/:id" element={<ProtectedRoute><WorkshopDetails /></ProtectedRoute>} />
+                      {/* Workshops routes */}
+                      <Route path="/workshops" element={<Workshops />} />
+                      <Route path="/workshops/create" element={<CreateWorkshop />} />
+                      <Route path="/workshops/:id" element={<WorkshopDetails />} />
 
-                      <Route path="/competitions" element={<ProtectedRoute><Competitions /></ProtectedRoute>} />
-                      <Route path="/competitions/create" element={<ProtectedRoute><CreateCompetition /></ProtectedRoute>} />
-                      <Route path="/competitions/:id" element={<ProtectedRoute><CompetitionDetails /></ProtectedRoute>} />
+                      {/* Competitions routes */}
+                      <Route path="/competitions" element={<Competitions />} />
+                      <Route path="/competitions/create" element={<CreateCompetition />} />
+                      <Route path="/competitions/:id" element={<CompetitionDetails />} />
 
-                      <Route path="/challenges" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />
-                      <Route path="/challenges/create" element={<ProtectedRoute><CreateChallenge /></ProtectedRoute>} />
-                      <Route path="/challenges/:id" element={<ProtectedRoute><ChallengeDetails /></ProtectedRoute>} />
-
-                      <Route path="/poetry-assistant" element={<ProtectedRoute><PoetryAssistant /></ProtectedRoute>} />
+                      {/* Challenges routes */}
+                      <Route path="/challenges" element={<Challenges />} />
+                      <Route path="/challenges/create" element={<CreateChallenge />} />
+                      <Route path="/challenges/:id" element={<ChallengeDetails />} />
                     </Routes>
                   </div>
                 </main>
               </div>
-              <FloatingPoetryIcon />
               <Toaster />
             </BrowserRouter>
           </div>

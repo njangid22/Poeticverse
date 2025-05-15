@@ -1,4 +1,3 @@
-
 import { LogOut, Settings, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,7 +29,6 @@ interface ProfileSettingsProps {
 export const ProfileSettings = ({ userId }: ProfileSettingsProps) => {
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -45,41 +43,37 @@ export const ProfileSettings = ({ userId }: ProfileSettingsProps) => {
 
   const handleDeleteAccount = async () => {
     try {
-      setIsDeleting(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error("No user found");
         toast.error("No user found");
-        setIsDeleting(false);
         return;
       }
 
-      console.log("Starting account deletion process for user:", user.id);
-      
-      // First, delete all the user data from the database
       await deleteUserData(user.id);
-      console.log("User data deleted successfully");
 
-      // Delete the auth user using the RPC function
+      // Sign out the user
+      console.log("Signing out user");
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        console.error("Error signing out:", signOutError);
+      }
+
+      // Delete the auth user
+      console.log("Deleting auth user");
       const { error: authDeleteError } = await supabase.rpc('delete_auth_user');
-      
       if (authDeleteError) {
         console.error("Error deleting auth user:", authDeleteError);
-        toast.error("Failed to completely delete account. Please contact support.");
-        setIsDeleting(false);
+        toast.error("Failed to completely delete account");
         return;
       }
 
-      // Sign out the user after successful deletion
-      await supabase.auth.signOut();
-      
       console.log("Account deletion successful");
       toast.success("Account deleted successfully");
       navigate("/login");
     } catch (error) {
       console.error("Error deleting account:", error);
       toast.error("Failed to delete account");
-      setIsDeleting(false);
     }
   };
 
@@ -87,18 +81,18 @@ export const ProfileSettings = ({ userId }: ProfileSettingsProps) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="hover:bg-gray-100 transition-colors">
+          <Button variant="ghost" size="icon">
             <Settings className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48 bg-white">
-          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Logout</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => setShowDeleteDialog(true)} 
-            className="text-red-600 cursor-pointer"
+            className="text-red-600"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             <span>Delete Account</span>
@@ -120,9 +114,8 @@ export const ProfileSettings = ({ userId }: ProfileSettingsProps) => {
             <AlertDialogAction
               onClick={handleDeleteAccount}
               className="bg-red-600 hover:bg-red-700"
-              disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete Account"}
+              Delete Account
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
